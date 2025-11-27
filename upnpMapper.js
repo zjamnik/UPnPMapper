@@ -92,9 +92,9 @@ function run(command, consoleOutput = false) {
 async function main() {
     await loadConfig();
 
-    instancesJSON = await readFile(config.instancesPath);
-    instancesPorts = "";
-    upnpPortList = run('upnpc -l');
+    const instancesJSON = await readFile(config.instancesPath);
+    let instancesPorts = "";
+    const upnpPortList = run('upnpc -l');
     // console.log(upnpPortList);
 
 
@@ -104,7 +104,7 @@ async function main() {
             for (const instancePort of JSON.parse(instance.DeploymentArgs['GenericModule.App.Ports'])) {
                 let Name = `AMP ${instance.FriendlyName} ${instancePort.Name}`;
                 let Number = instancePort.Port;
-                instancesPorts = `${Name}\n`;
+                instancesPorts += `${Name}\n`;
 
                 if (!upnpPortList.includes(Name)) {
                     switch (instancePort.Protocol) {
@@ -160,6 +160,7 @@ async function main() {
     for (const portMap of upnpPortList.split('\n')) {
         if (portMap.includes("AMP") && !instancesJSON.includes(portMap.split("'")[1])) {
             let found = portMap.match(/ *\d+ +(\w+) +(\d+).*/);
+            console.log(`Remove ${found[2]} ${found[1]}`);
             run(`upnpc -d ${found[2]} ${found[1]}`);
         }
     }
