@@ -118,22 +118,12 @@ function getPorts(instancesJSON) {
     return portList;
 }
 
-function getUPnPPorts(){
-    let convertOutput = exec(`upnpc -l`, function (error, stdout, stderr) {
-        if (error) {
-            log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            log(`stderr: ${stderr}`);
-            return;
-        }
-        log(`stdout: ${stdout}`);
-    });
+function getUPnPPorts() {
 
-    log(convertOutput.toString());
 
-    return `upnpc: miniupnpc library test client, version 2.2.8.
+
+    if (/^win/i.test(process.platform)) {
+        return `upnpc: miniupnpc library test client, version 2.2.8.
  (c) 2005-2024 Thomas Bernard.
 More information at https://miniupnp.tuxfamily.org/ or http://miniupnp.free.fr/
 
@@ -205,16 +195,36 @@ ExternalIPAddress = 78.9.235.162
 44 UDP 63077->192.168.0.69:63077 'NAT-PMP 63077 udp' '' 3361
 45 TCP 36439->192.168.0.69:36439 'NAT-PMP 36439 tcp' '' 3504
 46 UDP 36439->192.168.0.69:36439 'NAT-PMP 36439 udp' '' 3503
-47 TCP 30003->192.168.0.107:30003 'Empyrion' '' 69`
+47 TCP 30003->192.168.0.107:30003 'Empyrion' '' 69`;
+
+    } else {
+        let convertOutput = exec(`upnpc -l`, function (error, stdout, stderr) {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                return;
+            }
+            log(`stdout: ${stdout}`);
+        });
+
+        return convertOutput.toString();
+    }
+
+
+
 }
 
 async function main() {
     await loadConfig();
 
     portList = getPorts(await readFile(config.instancesPath));
-    console.log(portList);
+
+    upnpPorts = getUPnPPorts();
+    console.log(upnpPorts);
     
-    upnpPorts = getUPnPPorts()
 }
 
 main();
