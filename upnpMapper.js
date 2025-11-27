@@ -1,6 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('path');
-const execute = require("child_process").execSync;
+const exec = require("child_process").execSync;
 
 var config = null;
 const leaseTime = 3600;
@@ -68,9 +68,7 @@ async function saveConfig({ configPath = __dirname, configName = 'config.json' }
 }
 
 
-function execute() {
-    command = "ls";
-
+function run(command) {
     let convertOutput = exec(command, function (error, stdout, stderr) {
         if (error) {
             console.log(`error: ${error.message}`);
@@ -102,16 +100,16 @@ function mapPorts(instancesJSON) {
                 let Number = instancePort.Port;
                 switch (instancePort.Protocol) {
                     case 0:
-                        execute(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
                         break;
 
                     case 1:
-                        execute(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
                         break;
 
                     case 2:
-                        execute(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
-                        execute(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
                         break;
 
                     default:
