@@ -3,7 +3,6 @@ const path = require('path');
 const exec = require("child_process").execSync;
 
 var config = null;
-const leaseTime = 3600;
 
 function clone(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -68,82 +67,102 @@ async function saveConfig({ configPath = __dirname, configName = 'config.json' }
 }
 
 
-function run(command) {
+function run(command, consoleOutput = false) {
     let convertOutput = exec(command, function (error, stdout, stderr) {
         if (error) {
-            // console.log(`error: ${error.message}`);
+            if (consoleOutput) {
+                console.log(`error: ${error.message}`);
+            }
             return;
         }
         if (stderr) {
-            // console.log(`stderr: ${stderr}`);
+            if (consoleOutput) {
+                console.log(`stderr: ${stderr}`);
+            }
             return;
         }
-        // console.log(`stdout: ${stdout}`);
+        if (consoleOutput) {
+            console.log(`stdout: ${stdout}`);
+        }
     });
 
     return convertOutput.toString();
 }
 
-function mapPorts(instancesJSON) {
-    portList = [];
+async function main() {
+    await loadConfig();
 
-    instances = JSON.parse(instancesJSON);
-    for (const instance of instances) {
+    instancesJSON = await readFile(config.instancesPath);
+    instancesPorts = "";
+    upnpPortList = run('upnpc -l');
+    // console.log(upnpPortList);
+
+
+    for (const instance of JSON.parse(instancesJSON)) {
         if (instance.DeploymentArgs['GenericModule.App.Ports'] != undefined) {
-
-            instancePorts = JSON.parse(instance.DeploymentArgs['GenericModule.App.Ports']);
-
             // 0 - TCP; 1 = UDP; 2 - Both
-            for (const instancePort of instancePorts) {
-
+            for (const instancePort of JSON.parse(instance.DeploymentArgs['GenericModule.App.Ports'])) {
                 let Name = `AMP ${instance.FriendlyName} ${instancePort.Name}`;
                 let Number = instancePort.Port;
-                switch (instancePort.Protocol) {
-                    case 0:
-                        try {
-                            run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
-                            console.log(`Port added: "${Name}" ${Number} TCP`);
-                        } catch {
-                            console.log(`Port failed: "${Name}" ${Number} TCP`);
-                        }
-                        break;
+                instancesPorts = `${Name}\n`;
 
-                    case 1:
-                        try {
-                            run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
-                            console.log(`Port added: "${Name}" ${Number} UDP`);
-                        } catch {
-                            console.log(`Port failed: "${Name}" ${Number} UDP`);
-                        }
-                        break;
+                if (!upnpPortList.includes(Name)) {
+                    switch (instancePort.Protocol) {
+                        case 0:
+                            try {
+                                run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP`);
+                                console.log(`Port added: "${Name}" ${Number} TCP`);
+                            } catch {
+                                console.log(`Port failed: "${Name}" ${Number} TCP`);
+                            }
+                            break;
 
-                    case 2:
-                        try {
-                            run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
-                            console.log(`Port added: "${Name}" ${Number} TCP`);
-                        } catch {
-                            console.log(`Port failed: "${Name}" ${Number} TCP`);
-                        }
-                        try {
-                            run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
-                            console.log(`Port added: "${Name}" ${Number} UDP`);
-                        } catch {
-                            console.log(`Port failed: "${Name}" ${Number} UDP`);
-                        }
-                        break;
+                        case 1:
+                            try {
+                                run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP`);
+                                console.log(`Port added: "${Name}" ${Number} UDP`);
+                            } catch {
+                                console.log(`Port failed: "${Name}" ${Number} UDP`);
+                            }
+                            break;
 
-                    default:
-                        break;
+                        case 2:
+                            try {
+                                run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP`);
+                                console.log(`Port added: "${Name}" ${Number} TCP`);
+                            } catch {
+                                console.log(`Port failed: "${Name}" ${Number} TCP`);
+                            }
+                            try {
+                                run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP`);
+                                console.log(`Port added: "${Name}" ${Number} UDP`);
+                            } catch {
+                                console.log(`Port failed: "${Name}" ${Number} UDP`);
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
             }
         }
     }
-}
 
-async function main() {
-    await loadConfig();
+    // Delete all AMP
+    // for (const portMap of upnpPortList.split('\n')) {
+    //     if (portMap.includes("AMP")) {
+    //         let found = portMap.match(/ *\d+ +(\w+) +(\d+).*/);
+    //         run(`upnpc -d ${found[2]} ${found[1]}`);
+    //     }
+    // }
 
-    mapPorts(await readFile(config.instancesPath));
+    for (const portMap of upnpPortList.split('\n')) {
+        if (portMap.includes("AMP") && !instancesJSON.includes(portMap.split("'")[1])) {
+            let found = portMap.match(/ *\d+ +(\w+) +(\d+).*/);
+            run(`upnpc -d ${found[2]} ${found[1]}`);
+        }
+    }
 }
 
 main();
