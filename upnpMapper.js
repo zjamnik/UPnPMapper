@@ -156,9 +156,9 @@ async function main() {
     //         run(`upnpc -d ${found[2]} ${found[1]}`);
     //     }
     // }
-
+    
     for (const portMap of upnpPortList.split('\n')) {
-        if (portMap.includes("AMP") && !instancesJSON.includes(portMap.split("'")[1])) {
+        if (portMap.includes("AMP") && !instancesPorts.includes(portMap.split("'")[1])) {
             let found = portMap.match(/ *\d+ +(\w+) +(\d+).*/);
             console.log(`Remove ${found[2]} ${found[1]}`);
             run(`upnpc -d ${found[2]} ${found[1]}`);
