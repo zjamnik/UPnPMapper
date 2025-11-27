@@ -96,39 +96,39 @@ function mapPorts(instancesJSON) {
             // 0 - TCP; 1 = UDP; 2 - Both
             for (const instancePort of instancePorts) {
 
-                let Name = `${instance.FriendlyName} ${instancePort.Name}`;
+                let Name = `AMP ${instance.FriendlyName} ${instancePort.Name}`;
                 let Number = instancePort.Port;
                 switch (instancePort.Protocol) {
                     case 0:
                         try {
                             run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
-                            console.log(`Port added: ${Name} ${Number} TCP`);
+                            console.log(`Port added: "${Name}" ${Number} TCP`);
                         } catch {
-                            console.log(`Port failed: ${Name} ${Number} TCP`);
+                            console.log(`Port failed: "${Name}" ${Number} TCP`);
                         }
                         break;
 
                     case 1:
                         try {
                             run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
-                            console.log(`Port added: ${Name} ${Number} UDP`);
+                            console.log(`Port added: "${Name}" ${Number} UDP`);
                         } catch {
-                            console.log(`Port failed: ${Name} ${Number} UDP`);
+                            console.log(`Port failed: "${Name}" ${Number} UDP`);
                         }
                         break;
 
                     case 2:
                         try {
                             run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
-                            console.log(`Port added: ${Name} ${Number} TCP`);
+                            console.log(`Port added: "${Name}" ${Number} TCP`);
                         } catch {
-                            console.log(`Port failed: ${Name} ${Number} TCP`);
+                            console.log(`Port failed: "${Name}" ${Number} TCP`);
                         }
                         try {
                             run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
-                            console.log(`Port added: ${Name} ${Number} UDP`);
+                            console.log(`Port added: "${Name}" ${Number} UDP`);
                         } catch {
-                            console.log(`Port failed: ${Name} ${Number} UDP`);
+                            console.log(`Port failed: "${Name}" ${Number} UDP`);
                         }
                         break;
 
