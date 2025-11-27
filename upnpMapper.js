@@ -100,16 +100,16 @@ function mapPorts(instancesJSON) {
                 let Number = instancePort.Port;
                 switch (instancePort.Protocol) {
                     case 0:
-                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
                         break;
 
                     case 1:
-                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
                         break;
 
                     case 2:
-                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} TCP ${leaseTime}`);
-                        run(`upnpc -e "${Name}" -a ${ip} ${Number} ${Number} UDP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} TCP ${leaseTime}`);
+                        run(`upnpc -e "${Name}" -a ${config.ip} ${Number} ${Number} UDP ${leaseTime}`);
                         break;
 
                     default:
